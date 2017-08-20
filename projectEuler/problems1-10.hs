@@ -29,7 +29,7 @@ primeFactors n = f n primes
 
 -- (4) largest palindrome product
 prob4 :: Integer
-prob4 = maximum $ filter isPalindrome (f [10..999] [10..999] [])
+prob4 = maximum $ filter isPalindrome (f [100..999] [100..999] [])
     where
         isPalindrome n = reverse (show n) == (show n)
         f [] _ zs = zs
