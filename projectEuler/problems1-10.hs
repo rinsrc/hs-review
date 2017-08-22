@@ -1,4 +1,7 @@
 import Data.List
+import System.IO
+import Data.Char (digitToInt)
+import Data.Array
 
 -- (1) multiples of 3 and 5
 prob1 :: Integer
@@ -47,6 +50,32 @@ prob6 = sum [1..100]^2 - (sum . map (^2)) [1..100]
 -- (7) 10001st prime number
 prob7 :: Integer
 prob7 = primes !! 10000 -- primes from prob3 (10000, b/c index starts at 0)
+
+-- (8) largest product in a series
+prob8 :: Integer
+prob8 = do
+    -- number is stored in separate text file
+    handle <- openFile "prob8number.txt" ReadMode
+    contents <- hGetContents handle
+
+    -- use array for fast lookup of each digit individually
+    let arr = listArray (0,999) $ map digitToInt $ filter (/='\n') contents
+        -- findMax gets the maximum product of 13 adjacent digits in array
+        findMax = f 0 12 1
+            where
+                f _ 1000 max = max
+                f start end max =
+                    if adjacentProd > max
+                        then f (start+1) (end+1) adjacentProd
+                        else f (start+1) (end+1) max
+                    where
+                        -- multiplies 13 adjacent digits created by slice function
+                        adjacentProd = product $ map snd (slice start)
+
+                        -- slice creates a subarray of 13 digits
+                        slice start = take 13 (drop start $ assocs arr)
+    print findMax
+    hClose handle
 
 -- (9) special pythagorean triplet
 prob9 :: Integer
