@@ -1,6 +1,93 @@
 import Data.List
+import Data.Char (digitToInt)
 import Data.Array
 import Data.Ord (comparing)
+import System.IO
+
+-- (11) largest product in a grid
+prob11 :: Integer
+prob11 = do
+    handle <- openFile "prob11grid.txt" ReadMode
+    contents <- hGetContents handle
+    -- grid creates a list of integer lists [[int]] from text file
+    let grid = map toInt . toSublist . filter (/='\n') . filter (/=' ') $ contents
+        -- toInt changes two characters from into an integer  
+        toInt [] = []
+        toInt (a:b:xs) = (read (a:b:[]) :: Integer) : toInt xs
+
+        -- toSubList changes grid into list of sublists/string
+        toSublist xs = f 0 xs []
+            where
+                f 800 _ ys = reverse ys
+                f index xs ys = f (index+40) xs (take 40 (drop index xs):ys)
+
+        -- store max product in specific directions
+        vert = vertical grid 0 0 0
+        horiz = horizontal grid 0 0 0
+        diagR = diagonalR grid 0 0 0
+        diagL = diagonalL grid 0 19 0
+
+        -- vertical finds max product of 4 adjacent digits in up/down direction
+        vertical _ 17 _ max = max
+        vertical xs row 20 max = vertical xs (row+1) 0 max
+        vertical xs row col max
+            | vertProd > max = vertical xs row (col+1) vertProd
+            | otherwise = vertical xs row (col+1) max
+                where
+                    vertProd = xs !! row !! col * 
+                               xs !! (row+1) !! col * 
+                               xs !! (row+2) !! col * 
+                               xs !! (row+3) !! col
+
+        -- horizontal finds max product of 4 adjacent digits in left/right direction
+        horizontal _ 20 0 max = max
+        horizontal xs row 17 max = horizontal xs (row+1) 0 max
+        horizontal xs row col max
+            | horizProd > max = horizontal xs row (col+1) horizProd
+            | otherwise = horizontal xs row (col+1) max
+                where
+                    horizProd = product $ take 4 (drop col (xs !! row))
+        
+        -- diagonalR finds max product of 4 adjacent digits going 
+        -- from top-left to bottom-right diagonal direction
+        diagonalR _ 17 _ max = max
+        diagonalR xs row 17 max = diagonalR xs (row+1) 0 max
+        diagonalR xs row col max
+            | diagProd > max = diagonalR xs row (col+1) diagProd
+            | otherwise = diagonalR xs row (col+1) max
+                where
+                    diagProd = xs !! row !! col * 
+                               xs !! (row+1) !! (col+1) * 
+                               xs !! (row+2) !! (col+2) * 
+                               xs !! (row+3) !! (col+3)
+
+        -- diagonalL finds max product of 4 adjacent digits 
+        -- from top-right to bottom-left diagonal direction
+        diagonalL _ 17 _ max = max
+        diagonalL xs row 2 max = diagonalL xs (row+1) 19 max
+        diagonalL xs row col max
+            | diagProd > max = diagonalL xs row (col-1) diagProd
+            | otherwise = diagonalL xs row (col-1) max
+                where
+                    diagProd = xs !! row !! col * 
+                               xs !! (row+1) !! (col-1) * 
+                               xs !! (row+2) !! (col-2) * 
+                               xs !! (row+3) !! (col-3)
+
+    print $ max vert $ max horiz $ max diagL diagR
+    hClose handle
+
+diagonalL xs = maximum $ map fst $ f xs 0 19 []
+    where
+        f _ 17 _ ys = ys
+        f xs row 2 ys = f xs (row+1) 19 ys
+        f xs row col ys = f xs row (col-1) (diagProd:ys)
+                where
+                    diagProd = ((xs !! row !! col * 
+                               xs !! (row+1) !! (col-1) * 
+                               xs !! (row+2) !! (col-2) * 
+                               xs !! (row+3) !! (col-3)),
+                               [xs !! row !! col, xs !! (row+1) !! (col-1), xs !! (row+2) !! (col-2), xs !! (row+3) !! (col-3)])
 
 -- (12) highly divisible triangular numbers
 prob12 :: Integer
