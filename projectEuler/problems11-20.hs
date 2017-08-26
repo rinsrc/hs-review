@@ -5,9 +5,9 @@ import Data.Ord (comparing)
 import System.IO
 
 -- (11) largest product in a grid
-prob11 :: Integer
+prob11 :: IO ()
 prob11 = do
-    handle <- openFile "prob11grid.txt" ReadMode
+    handle <- openFile "textFiles/p11.txt" ReadMode
     contents <- hGetContents handle
     -- grid creates a list of integer lists [[int]] from text file
     let grid = map toInt . toSublist . filter (/='\n') . filter (/=' ') $ contents
@@ -15,11 +15,11 @@ prob11 = do
         toInt [] = []
         toInt (a:b:xs) = (read (a:b:[]) :: Integer) : toInt xs
 
-        -- toSubList changes grid into list of sublists/string
-        toSublist xs = f 0 xs []
+        -- toSublist changes grid into list of sublists/string
+        toSublist xs = f xs 0 []
             where
-                f 800 _ ys = reverse ys
-                f index xs ys = f (index+40) xs (take 40 (drop index xs):ys)
+                f _ 800 ys = ys
+                f xs index ys = f xs (index+40) (take 40 (drop index xs):ys)
 
         -- store max product in specific directions
         vert = vertical grid 0 0 0
@@ -74,20 +74,8 @@ prob11 = do
                                xs !! (row+2) !! (col-2) * 
                                xs !! (row+3) !! (col-3)
 
-    print $ max vert $ max horiz $ max diagL diagR
+    print $ max vert $ max horiz $ max diagL diagR 
     hClose handle
-
-diagonalL xs = maximum $ map fst $ f xs 0 19 []
-    where
-        f _ 17 _ ys = ys
-        f xs row 2 ys = f xs (row+1) 19 ys
-        f xs row col ys = f xs row (col-1) (diagProd:ys)
-                where
-                    diagProd = ((xs !! row !! col * 
-                               xs !! (row+1) !! (col-1) * 
-                               xs !! (row+2) !! (col-2) * 
-                               xs !! (row+3) !! (col-3)),
-                               [xs !! row !! col, xs !! (row+1) !! (col-1), xs !! (row+2) !! (col-2), xs !! (row+3) !! (col-3)])
 
 -- (12) highly divisible triangular numbers
 prob12 :: Integer
@@ -113,6 +101,15 @@ primeFactors n = f n primes
             | n `mod` x == 0 = x : f (n `div` x) (x:xs)
             | otherwise = f n xs
 
+-- (13) large sum
+prob13 :: IO ()
+prob13 = do
+    handle <- openFile "textFiles/p13.txt" ReadMode
+    contents <- hGetContents handle
+    let numList = map (\x -> read x :: Integer) $ lines contents
+    print $ (take 10 . show . sum) numList
+    hClose handle
+
 -- (14) longest collatz sequence
 prob14 :: (Integer,Integer) -- first number is answer, second is collatz sequence length
 prob14 = maximumBy (comparing snd) $ assocs $ collatzArray
@@ -132,3 +129,26 @@ prob14 = maximumBy (comparing snd) $ assocs $ collatzArray
                 else 1 + collatzLength collatzNum
             where
                 collatzNum = if even n then n `div` 2 else 3*n+1
+
+-- (16) power digit sum
+prob16 :: Int
+prob16 = sum . map digitToInt . show $ 2^1000
+
+-- (17) number letter counts
+prob17 = sum $ map (length . numLetterCount) [1..1000]
+    where
+        numLetterCount n = f (show n) ""
+            where
+                f "" xs = xs
+                f n xs
+                    | length n == 1 = xs ++ singleDigit ! (digitToInt $ head n)
+                    | length n == 2 && (read n :: Int) > 10 && (read n :: Int) < 20 = xs ++ special ! (digitToInt $ last n)
+                    | length n == 2 = f (tail n) (xs ++ doubleDigit ! (digitToInt $ head n))
+                    | length n == 3 && (read n :: Int) `mod` 100 == 0 = f (tail n) (xs ++ singleDigit ! (digitToInt $ head n) ++ "hundred")
+                    | length n == 3 = f (tail n) (xs ++ singleDigit ! (digitToInt $ head n) ++ "hundredand")
+                    | (read n :: Int) == 1000 = "onethousand"
+                    | otherwise = error "Number out of range [1..1000]"
+                
+                singleDigit = listArray (0,9) ["","one","two","three","four","five","six","seven","eight","nine"]
+                doubleDigit = listArray (0,9) ["", "ten","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"]
+                special = listArray (1,9) ["eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"]
