@@ -52,10 +52,10 @@ prob7 :: Integer
 prob7 = primes !! 10000 -- primes from prob3 (10000, b/c index starts at 0)
 
 -- (8) largest product in a series
-prob8 :: Integer
+prob8 :: IO ()
 prob8 = do
     -- number is stored in separate text file
-    handle <- openFile "prob8number.txt" ReadMode
+    handle <- openFile "p8.txt" ReadMode
     contents <- hGetContents handle
 
     -- use array for fast lookup of each digit individually
