@@ -130,11 +130,20 @@ prob14 = maximumBy (comparing snd) $ assocs $ collatzArray
             where
                 collatzNum = if even n then n `div` 2 else 3*n+1
 
+-- (15) lattice paths
+-- in 20x20 grid, to get to bottom-right corner, you have to take 40 steps
+-- you must go down 20 steps and to the right 20 steps (order of right direction does not matter)
+-- therefore, use combinations C(40,20) = 40! / (20!)(40-20)!
+prob15 :: Integer
+prob15 = factorial 40 `div` (factorial 20 * factorial (40-20))
+    where factorial n = product [2..n]
+
 -- (16) power digit sum
 prob16 :: Int
 prob16 = sum . map digitToInt . show $ 2^1000
 
 -- (17) number letter counts
+prob17 :: Int
 prob17 = sum $ map (length . numLetterCount) [1..1000]
     where
         numLetterCount n = f (show n) ""
@@ -152,3 +161,24 @@ prob17 = sum $ map (length . numLetterCount) [1..1000]
                 singleDigit = listArray (0,9) ["","one","two","three","four","five","six","seven","eight","nine"]
                 doubleDigit = listArray (0,9) ["", "ten","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"]
                 special = listArray (1,9) ["eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"]
+
+
+-- (19) counting sundays
+-- 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wednesday, etc.
+prob19 :: Int
+prob19 = length $ filter (==0) . drop 12 . take 1212 $ since1900
+    where
+        since1900 = scanl nextMonth 1 . concat $ generateDays
+            where  
+                generateDays = replicate 4 nonLeap ++ cycle (leap : replicate 3 nonLeap)
+                
+                -- nextMonth determines what day the month begins on
+                -- example: January 1, 1900 is Monday, when using (nextMonth 1 31 = 4)
+                -- which means February starts on a Thursday
+                nextMonth x y = (x + y) `mod` 7
+                nonLeap = [31,28,31,30,31,30,31,31,30,31,30,31]
+                leap = 31 : 29 : drop 2 nonLeap
+
+-- (20) factorial digit sum
+prob20 :: Int
+prob20 = sum $ map digitToInt $ show $ product [2..100]
