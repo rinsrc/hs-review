@@ -162,6 +162,39 @@ prob17 = sum $ map (length . numLetterCount) [1..1000]
                 doubleDigit = listArray (0,9) ["", "ten","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"]
                 special = listArray (1,9) ["eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"]
 
+-- (18) maximum sum path 1
+prob18 :: IO ()
+prob18 = do
+    handle <- openFile "textFiles/p18.txt" ReadMode
+    contents <- hGetContents handle
+    -- creates a list of list of integers [[int]]
+    let list = map (toInt . words) . lines $ contents
+        toInt [] = []
+        toInt (x:xs) = (read x :: Int) : toInt xs
+
+        {- start from bottom of triangle and find
+           max sum between number pairs from row above and current row
+           example:    
+                       3            3                3
+                      7 4   -->   7   4      -->   20 19    --> 23
+                     2 4 6      10  13  15
+                    8 5 9 3
+                
+                *compute: max (2+8, 2+5), max (4+5, 4+9), max (6+9, 6+3)
+                *repeat process up the rows in the tree
+        -}
+        upwardSum xs 0 = xs
+        upwardSum xs row = upwardSum (take (row-1) xs ++ (f 0 []) : []) (row-1)
+            where
+                f index ys
+                    | index == row = reverse ys
+                    | otherwise = f (index+1) (max a b : ys)
+                        where
+                            a = ((xs !! (row-1) !! index) + (xs !! row !! index)) 
+                            b = ((xs !! (row-1) !! index) + (xs !! row !! (index+1)))
+
+    print $ upwardSum list 14
+    hClose handle
 
 -- (19) counting sundays
 -- 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wednesday, etc.
