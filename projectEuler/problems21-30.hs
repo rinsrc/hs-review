@@ -22,6 +22,7 @@ prob21 = sum $ filter isAmi [1..10000]
                     | otherwise = f n xs
 
 -- (22) name scores
+prob22 :: IO ()
 prob22 = do
     handle <- openFile "textFiles/p22.txt" ReadMode
     contents <- hGetContents handle
@@ -43,3 +44,22 @@ prob22 = do
 
     print $ sum $ zipWith (*) [1..5163] $ map (sum . letterCount) $ sort names
     hClose handle
+
+-- (23) non-abundant sums
+{-
+    divisors n = f n [1..n-1]
+        where
+            f _ [] = []
+            f n (x:xs)
+                | n `mod` x == 0 = x : f n xs
+                | otherwise = f n xs
+
+    abundant n = if n < (sum $ divisors n) then True else False
+
+    f = filter abundant [1..28123]
+-}
+
+-- (25) 1000 digit fibonacci number
+prob25 :: Maybe Int
+prob25 = elemIndex 1000 $ takeWhile (<1001) $ map (length . show) fibs
+    where fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
