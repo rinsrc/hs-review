@@ -6,7 +6,7 @@ import Data.Char (digitToInt)
 import Data.Maybe
 
 -- (21) amicable numbers
-prob21 :: Int
+prob21 :: Integer
 prob21 = sum $ filter isAmi [1..10000]
     where
         -- checks if a number is amicable (a /= n and sum equal each other)
@@ -14,7 +14,7 @@ prob21 = sum $ filter isAmi [1..10000]
             where a = sum . divisors $ n
 
         -- divisors generates a list of numbers that divide into n
-        divisors n = f n [1..n-1]
+        divisors n = f n [1..(n `div` 2)]
             where
                 f _ [] = []
                 f n (x:xs)
@@ -46,18 +46,40 @@ prob22 = do
     hClose handle
 
 -- (23) non-abundant sums
-{-
-divisors n = f n [1..n-1]
+-- according to WolframAlpha, limit of non-abundant sums is <= 20161, not 28123
+prob23 = sum $ filter nonAbundantSums [1..20161]
     where
-        f _ [] = []
+        -- use as filter to find non-abundant sums
+        nonAbundantSums n
+            | n < 12 = True
+            | otherwise = abundantSums n $ takeWhile (<=n) abundantNums
+
+        -- checks if a number can be expressed as the sum of two abundant number
+        abundantSums _ [] = True
+        abundantSums n (x:xs)
+            | n `elem` (x + x : map (+x) xs) = False
+            | otherwise = abundantSums n xs
+
+        -- abundantNums creates a list of abundant numbers
+        abundantNums = filter abundant [12..28123]
+            where abundant n = if n < (sum $ divisors n) then True else False
+
+        -- find list of divisors for a number n by using prime factors
+        divisors n = init . nub $ (map product . powerSet . primeFactors) n
+
+primes :: [Integer]
+primes = 2 : filter ((==1) . length . primeFactors) [3,5..]
+
+primeFactors :: Integer -> [Integer]
+primeFactors n = f n primes
+    where
         f n (x:xs)
-            | n `mod` x == 0 = x : f n xs
+            | x*x > n = [n]
+            | n `mod` x == 0 = x : f (n `div` x) (x:xs)
             | otherwise = f n xs
 
-abundant n = if n < (sum $ divisors n) then True else False
-
-f = filter abundant [1..28123]
--}
+powerSet :: [a] -> [[a]]
+powerSet xs = foldr (\x acc -> acc ++ map (x:) acc) [[]] xs
 
 -- (25) 1000 digit fibonacci number
 prob25 :: Maybe Int
