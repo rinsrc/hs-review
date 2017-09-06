@@ -47,6 +47,7 @@ prob22 = do
 
 -- (23) non-abundant sums
 -- according to WolframAlpha, limit of non-abundant sums is <= 20161, not 28123
+prob23 :: Integer
 prob23 = sum $ filter nonAbundantSums [1..20161]
     where
         -- use as filter to find non-abundant sums
@@ -80,6 +81,10 @@ primeFactors n = f n primes
 
 powerSet :: [a] -> [[a]]
 powerSet xs = foldr (\x acc -> acc ++ map (x:) acc) [[]] xs
+
+-- (24) lexicographic permutations
+prob24 :: String
+prob24 = (sort . permutations $ "0123456789") !! 999999
 
 -- (25) 1000 digit fibonacci number
 prob25 :: Maybe Int
