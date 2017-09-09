@@ -4,6 +4,7 @@ import qualified Data.Map as Map
 import Data.Array
 import Data.Char (digitToInt)
 import Data.Maybe
+import Data.Ord (comparing)
 
 -- (21) amicable numbers
 prob21 :: Integer
@@ -91,6 +92,62 @@ prob25 :: Maybe Int
 prob25 = elemIndex 1000 $ takeWhile (<1001) $ map (length . show) fibs
     where fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
 
+-- (27) quadratic primes
+-- filter (\x -> snd x /= 0)
+{-
+prob27 = map (applyPair 0 [0..]) coeffPairs
+    where
+        -- applyPair takes a tuple and applies it to quad, the quadratic equation
+        -- if there is no consecutive prime number, break out of function
+        applyPair counter (n:ns) (a,b) =
+            if isPrime quad == False
+                then ((a,b), counter)
+                else applyPair (counter+1) ns (a,b)
+                    where quad = n^2 + a*n + b
+-}
+
+-- two ints in tuple are coefficients (a,b)
+-- second int is total number of consecutive primes (a,b) produces when used in quadratic equation
+prob27 :: ((Integer,Integer),Integer)
+prob27 = maximumBy (comparing snd) $ map (countPrimes 0 [0..]) $ coeffPair aCoeff bCoeff
+    where
+        -- countPrimes takes a tuple of coefficients provided by coeffPair
+        -- and applies it to quad, the quadratic equation, 
+        -- and counts total number of consecutive primes it produces
+        countPrimes counter (n:ns) (a,b) =
+            if isPrime quad == False
+                then ((a,b), counter)
+                else countPrimes (counter+1) ns (a,b)
+                    where quad = n^2 + a*n + b
+
+        -- creates list tuple of potential coefficients
+        coeffPair [] ys = []
+        coeffPair (x:xs) ys = (filter aLessThanB $ map (pair x) ys) ++ (coeffPair xs ys)
+            where
+                aLessThanB (a,b) = if (abs (a)) > b then False else True
+                pair a b = (a,b)
+
+        -- when n = 1, we get expression 1 - a + b 
+        -- therefore, absolute value of a must be odd, possibly prime, and less than b
+        aCoeff = [-999,-997..999]
+
+        -- when n = 0, 0^2 + a*0 + b = b, therefore b must be prime
+        -- this reduces our range to prime numbers between [-1000,1000]
+        bCoeff = map (*(-1)) bPrimes ++ (bPrimes)
+            where bPrimes = takeWhile (<1001) primes
+
+isPrime :: Integer -> Bool
+isPrime n
+    | n <= 1 = False
+    | n <= 3 = True
+    | n `mod` 2 == 0 || n `mod` 3 == 0 = False
+    | otherwise = f 5 2
+        where
+            f i w
+                | (i*i) > n = True
+                | (i*i) <= n && n `mod` i == 0 || n `mod` (i+2) == 0 = False
+                | otherwise = f (i+w) (6-w) 
+
 -- (28) number spiral diagonals
 -- some observations:
 -- gridSize is always incremented by 2: [1,3,5,7,9..]
@@ -121,7 +178,7 @@ prob30 :: Int
 prob30 = sum $ filter fifthPowerSum [2..upperBound]
     where
         -- upperBound determined by comparing biggest fifthPowerSum to smallest n-digit number
-        -- excluse 1 digit numbers
+        -- exclude 1 digit numbers
         -- 2 digit = 9^5 * 2 > 1, range : [1..9^5*2]
         -- 3 digit = 9^5 * 3 > 10, range : [1..9^5*3]
         -- 6 digit = 9^5 * 6 > 100000, range : [1..9^5*6]
