@@ -92,20 +92,23 @@ prob25 :: Maybe Int
 prob25 = elemIndex 1000 $ takeWhile (<1001) $ map (length . show) fibs
     where fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
 
--- (27) quadratic primes
--- filter (\x -> snd x /= 0)
-{-
-prob27 = map (applyPair 0 [0..]) coeffPairs
+-- (26) reciprocal cycles
+-- in tuple, first is numerator, second is denominator, and third is repeated cycle length
+prob26 :: (Integer,Integer,Integer)
+prob26 = maximumBy (comparing trd') $ map countRemainder $ zip (take 999 $ repeat 1) [1..999]
     where
-        -- applyPair takes a tuple and applies it to quad, the quadratic equation
-        -- if there is no consecutive prime number, break out of function
-        applyPair counter (n:ns) (a,b) =
-            if isPrime quad == False
-                then ((a,b), counter)
-                else applyPair (counter+1) ns (a,b)
-                    where quad = n^2 + a*n + b
--}
+        trd' (_,_,c) = c
 
+        -- countRemainder uses a brute-force long-division method to count repeated decimal cycles
+        -- multiply remainder (via mod function) by 10 and divide by denominator d
+        -- put result in list xs and check if number already exists in it to end function
+        countRemainder (n,d) = f [] 0 1 (n,d)
+            where
+                f xs counter remainder (n,d)
+                    | remainder `mod` d == 0 || (remainder `mod` d) `elem` xs = (n,d,counter)
+                    | otherwise = f (remainder `mod` d : xs) (counter+1) (remainder*10) (n,d)
+
+-- (27) quadratic primes
 -- two ints in tuple are coefficients (a,b)
 -- second int is total number of consecutive primes (a,b) produces when used in quadratic equation
 prob27 :: ((Integer,Integer),Integer)
